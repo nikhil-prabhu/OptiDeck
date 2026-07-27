@@ -83,7 +83,7 @@ ApplicationWindow {
                                 Slider {
                                     id: slider
                                     width: parent.width
-                                    controlDelegate.modelData.minimum
+                                    from: controlDelegate.modelData.minimum
                                     to: controlDelegate.modelData.maximum
                                     stepSize: controlDelegate.modelData.step > 0 ? controlDelegate.modelData.step : 1
                                     value: controlDelegate.modelData.currentValue

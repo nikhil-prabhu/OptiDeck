@@ -1,12 +1,8 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <print>
 #include <qqmlcontext.h>
-#include <linux/videodev2.h>
 
 #include "core/CameraManager.h"
-#include "core/V4L2Scanner.h"
-#include "core/V4L2Controller.h"
 
 #define APP_VERSION "0.1.0"
 
