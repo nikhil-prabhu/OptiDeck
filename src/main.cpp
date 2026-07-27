@@ -1,24 +1,36 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <qqmlcontext.h>
+#include <QQmlContext>
 
-#include "core/CameraManager.h"
+#include "core/DeviceManager.h"
+#include "core/ThemeImageProvider.h"
 
 #define APP_VERSION "0.1.0"
 
+using namespace Qt::StringLiterals;
+
 int main(int argc, char *argv[]) {
-    QGuiApplication app(argc, argv);
+    const QGuiApplication app(argc, argv);
     QGuiApplication::setApplicationVersion(APP_VERSION);
 
-    CameraManager cameraManager;
+    DeviceManager deviceManager;
 
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("cameraManager", &cameraManager);
-    engine.loadFromModule("OptiDeck", "Main");
+    engine.addImageProvider(u"theme"_s, new ThemeImageProvider());
+    engine.rootContext()->setContextProperty("deviceManager", &deviceManager);
 
-    if (engine.rootObjects().isEmpty()) {
-        return -1;
-    }
+    const QUrl url(u"qrc:/qt/qml/OptiDeck/src/ui/Main.qml"_s);
+    QObject::connect(
+        &engine,
+        &QQmlApplicationEngine::objectCreated,
+        &app,
+        [url](const QObject *obj, const QUrl &objUrl) {
+            if (!obj && url == objUrl)
+                QCoreApplication::exit(-1);
+        },
+        Qt::QueuedConnection);
+
+    engine.load(url);
 
     return QGuiApplication::exec();
 }

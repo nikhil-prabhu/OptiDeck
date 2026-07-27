@@ -1,100 +1,195 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
-ApplicationWindow {
-    id: window
-    width: 800
+Window {
+    width: 900
     height: 600
     visible: true
     title: qsTr("OptiDeck")
 
-    Rectangle {
+    StackView {
+        id: stackView
         anchors.fill: parent
-        color: palette.window
+        initialItem: dashboardView
+    }
 
-        ScrollView {
-            anchors.fill: parent
-            anchors.margins: 20
-            contentWidth: availableWidth
+    // --- DASHBOARD PAGE ---
+    Component {
+        id: dashboardView
 
-            Column {
-                width: parent.width
+        Item {
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 32
                 spacing: 24
 
-                Text {
-                    text: qsTr("Webcam Controls")
-                    color: palette.windowText
-                    font.pixelSize: 22
-                    font.bold: true
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text {
+                        text: qsTr("My Devices")
+                        font.pixelSize: 24
+                        font.bold: true
+                        Layout.fillWidth: true
+                    }
+                    Button {
+                        text: qsTr("Refresh")
+                        onClicked: deviceManager.refreshDevices()
+                    }
                 }
 
-                Repeater {
-                    model: cameraManager.cameras
+                // Horizontal layout for detected devices
+                Row {
+                    Layout.fillWidth: true
+                    spacing: 20
 
-                    delegate: Column {
-                        id: cameraDelegate
-                        required property var modelData
+                    Repeater {
+                        model: deviceManager.devices
+                        delegate: Item {
+                            width: 180
+                            height: 220
 
-                        width: parent.width
-                        spacing: 12
+                            Rectangle {
+                                anchors.fill: parent
+                                color: mouseArea.containsMouse ? palette.alternateBase : palette.base
+                                border.color: palette.mid
+                                border.width: 1
+                                radius: 8
 
-                        Rectangle {
-                            width: parent.width
-                            height: 40
-                            color: palette.base
-                            radius: 6
+                                ColumnLayout {
+                                    anchors.fill: parent
+                                    anchors.margins: 16
+                                    spacing: 8
 
-                            Text {
-                                anchors.centerIn: parent
-                                text: cameraDelegate.modelData.cardName + " (" + cameraDelegate.modelData.devicePath + ")"
-                                color: palette.text
-                                font.bold: true
-                                font.pixelSize: 14
-                            }
-                        }
+                                    // TODO: dynamically set icon based on device type
+                                    Image {
+                                        Layout.alignment: Qt.AlignHCenter
+                                        source: "image://theme/camera-web"
+                                        sourceSize.width: 64
+                                        sourceSize.height: 64
+                                        fillMode: Image.PreserveAspectFit
+                                    }
 
-                        Repeater {
-                            model: cameraDelegate.modelData.controls
-
-                            delegate: Column {
-                                id: controlDelegate
-                                required property var modelData
-
-                                width: parent.width
-                                spacing: 4
-
-                                Row {
-                                    width: parent.width
-
-                                    Text {
-                                        text: controlDelegate.modelData.name
-                                        color: palette.windowText
-                                        font.pixelSize: 13
-                                        width: 200
+                                    Item {
+                                        Layout.fillHeight: true
                                     }
 
                                     Text {
-                                        text: slider.value
-                                        color: palette.windowText
-                                        font.pixelSize: 13
+                                        text: modelData.name
+                                        font.bold: true
+                                        font.pixelSize: 14
+                                        horizontalAlignment: Text.AlignHCenter
+                                        Layout.fillWidth: true
+                                        elide: Text.ElideRight
+                                    }
+
+                                    Text {
+                                        text: qsTr("Battery: --") // Placeholder
+                                        font.pixelSize: 11
+                                        color: palette.text
+                                        opacity: 0.6
+                                        horizontalAlignment: Text.AlignHCenter
+                                        Layout.fillWidth: true
+                                    }
+
+                                    Item {
+                                        Layout.fillHeight: true
                                     }
                                 }
 
-                                Slider {
-                                    id: slider
-                                    width: parent.width
-                                    from: controlDelegate.modelData.minimum
-                                    to: controlDelegate.modelData.maximum
-                                    stepSize: controlDelegate.modelData.step > 0 ? controlDelegate.modelData.step : 1
-                                    value: controlDelegate.modelData.currentValue
-
-                                    onMoved: {
-                                        cameraManager.setControlValue(
-                                            cameraDelegate.modelData.devicePath,
-                                            controlDelegate.modelData.id,
-                                            Math.round(value)
-                                        )
+                                MouseArea {
+                                    id: mouseArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    onClicked: {
+                                        stackView.push(deviceDetailView, {
+                                            deviceName: modelData.name,
+                                            devicePath: modelData.id,
+                                            controlsModel: modelData.controls || []
+                                        })
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Item {
+                    Layout.fillHeight: true
+                }
+            }
+        }
+    }
+
+    // --- DEVICE DETAIL PAGE ---
+    Component {
+        id: deviceDetailView
+
+        Item {
+            property string deviceName: ""
+            property string devicePath: ""
+            property var controlsModel: []
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 32
+                spacing: 20
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 16
+
+                    Button {
+                        text: qsTr("← Back")
+                        onClicked: stackView.pop()
+                    }
+
+                    Text {
+                        text: deviceName
+                        font.pixelSize: 22
+                        font.bold: true
+                        Layout.fillWidth: true
+                    }
+                }
+
+                ScrollView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    clip: true
+
+                    ListView {
+                        width: parent.width
+                        model: controlsModel
+                        spacing: 16
+
+                        delegate: ColumnLayout {
+                            width: parent.width
+                            spacing: 6
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text {
+                                    text: modelData.name
+                                    font.pixelSize: 14
+                                    Layout.fillWidth: true
+                                }
+                                Text {
+                                    text: slider.value
+                                    font.pixelSize: 14
+                                    font.bold: true
+                                }
+                            }
+
+                            Slider {
+                                id: slider
+                                Layout.fillWidth: true
+                                from: modelData.minimum
+                                to: modelData.maximum
+                                stepSize: modelData.step > 0 ? modelData.step : 1
+                                value: modelData.currentValue
+
+                                onMoved: {
+                                    deviceManager.setWebcamControl(devicePath, modelData.id, value)
                                 }
                             }
                         }
