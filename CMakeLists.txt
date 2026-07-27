@@ -18,6 +18,8 @@ qt_add_executable(appOptiDeck
         src/core/V4L2Scanner.h
         src/core/V4L2Controller.cpp
         src/core/V4L2Controller.h
+        src/core/CameraManager.cpp
+        src/core/CameraManager.h
 )
 
 qt_add_qml_module(appOptiDeck
