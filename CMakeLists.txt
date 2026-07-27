@@ -14,6 +14,8 @@ qt_policy(SET QTP0004 NEW)
 
 qt_add_executable(appOptiDeck
         src/main.cpp
+        src/core/V4L2Scanner.cpp
+        src/core/V4L2Scanner.h
 )
 
 qt_add_qml_module(appOptiDeck
