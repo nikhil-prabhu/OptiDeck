@@ -245,9 +245,27 @@ Window {
                                             if (modelData.menuItems && modelData.menuItems.length > 0) {
                                                 return comboBoxWidget.currentText
                                             } else if (modelData.minimum === 0 && modelData.maximum === 1) {
-                                                return switchWidget.checked ? "1" : "0"
+                                                return switchWidget.checked ? "ON" : "OFF"
                                             } else {
-                                                return sliderWidget.value
+                                                const name = modelData.name ? modelData.name.toLowerCase() : "";
+                                                const val = sliderWidget.value;
+
+                                                if (name.indexOf("temperature") !== -1 || name.indexOf("white balance") !== -1) {
+                                                    return val + " K"
+                                                } else if (name.indexOf("exposure") !== -1 || name.indexOf("time") !== -1) {
+                                                    // Exposure metrics are usually absolute values (like ms or steps)
+                                                    return val + " ms"
+                                                } else if (name.indexOf("gain") !== -1 || name.indexOf("pan") !== -1 || name.indexOf("tilt") !== -1) {
+                                                    // Raw unit measurements
+                                                    return val
+                                                } else {
+                                                    // Default fallback: Percentage for standard 0-255 scaling bounds
+                                                    const min = modelData.minimum;
+                                                    const max = modelData.maximum;
+                                                    if (max === min) return "0%"
+                                                    const percent = Math.round(((val - min) / (max - min)) * 100);
+                                                    return percent + "%"
+                                                }
                                             }
                                         }
                                         font.pixelSize: 13
