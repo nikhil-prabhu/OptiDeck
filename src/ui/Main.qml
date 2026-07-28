@@ -226,11 +226,12 @@ Window {
                             id: controlsListView
                             width: parent.width
                             model: controlsModel
-                            spacing: 16
+                            spacing: 48
 
                             delegate: ColumnLayout {
                                 width: controlsListView.width - 20
-                                spacing: 6
+                                spacing: 8
+                                opacity: modelData.isInactive ? 0.5 : 1.0
 
                                 RowLayout {
                                     Layout.fillWidth: true
@@ -248,7 +249,6 @@ Window {
                                                 return switchWidget.checked ? "ON" : "OFF"
                                             } else {
                                                 const name = modelData.name ? modelData.name.toLowerCase() : "";
-                                                // Safely read value from the currently loaded slider inside the loader item
                                                 const val = sliderLoader.item ? sliderLoader.item.value : modelData.currentValue;
 
                                                 if (name.indexOf("temperature") !== -1 || name.indexOf("white balance") !== -1) {
@@ -276,7 +276,6 @@ Window {
                                     height: {
                                         if (modelData.menuItems && modelData.menuItems.length > 0) return comboBoxWidget.height
                                         if (modelData.minimum === 0 && modelData.maximum === 1) return switchWidget.height
-                                        // Fallback to loader item height or default slider sizing
                                         return sliderLoader.item ? sliderLoader.item.height : 40
                                     }
 
@@ -287,7 +286,6 @@ Window {
                                         anchors.right: parent.right
                                         visible: modelData.menuItems && modelData.menuItems.length > 0
                                         enabled: !modelData.isInactive
-                                        opacity: enabled ? 1.0 : 0.4
 
                                         model: modelData.menuItems || []
                                         textRole: "name"
@@ -318,7 +316,6 @@ Window {
                                         anchors.right: parent.right
                                         visible: (!modelData.menuItems || modelData.menuItems.length === 0) && (modelData.minimum === 0 && modelData.maximum === 1)
                                         enabled: !modelData.isInactive
-                                        opacity: enabled ? 1.0 : 0.4
                                         checked: modelData.currentValue !== 0
 
                                         onToggled: {
@@ -327,7 +324,7 @@ Window {
                                         }
                                     }
 
-                                    // Loader with an assigned ID to track the active slider instance
+                                    // Loader for Sliders
                                     Loader {
                                         id: sliderLoader
                                         anchors.left: parent.left
@@ -339,7 +336,7 @@ Window {
                                         sourceComponent: isTemp ? tempSliderComp : standardSliderComp
                                     }
 
-                                    // Dedicated Temperature Slider Component with the Custom Gradient
+                                    // Dedicated Temperature Slider Component
                                     Component {
                                         id: tempSliderComp
 
@@ -347,7 +344,6 @@ Window {
                                             id: tempWidget
                                             width: parent.width
                                             enabled: !modelData.isInactive
-                                            opacity: enabled ? 1.0 : 0.4
                                             from: modelData.minimum
                                             to: modelData.maximum
                                             stepSize: modelData.step > 0 ? modelData.step : 1
@@ -369,13 +365,13 @@ Window {
                                                     orientation: Gradient.Horizontal
                                                     GradientStop {
                                                         position: 0.0; color: "#4da6ff"
-                                                    } // Cool Blue
+                                                    }
                                                     GradientStop {
                                                         position: 0.5; color: "#e3e3e3"
-                                                    } // Neutral Gray
+                                                    }
                                                     GradientStop {
                                                         position: 1.0; color: "#ffb84d"
-                                                    } // Warm Orange
+                                                    }
                                                 }
 
                                                 Rectangle {
@@ -395,7 +391,6 @@ Window {
                                         Slider {
                                             width: parent.width
                                             enabled: !modelData.isInactive
-                                            opacity: enabled ? 1.0 : 0.4
                                             from: modelData.minimum
                                             to: modelData.maximum
                                             stepSize: modelData.step > 0 ? modelData.step : 1
