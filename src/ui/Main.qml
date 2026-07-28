@@ -248,18 +248,16 @@ Window {
                                                 return switchWidget.checked ? "ON" : "OFF"
                                             } else {
                                                 const name = modelData.name ? modelData.name.toLowerCase() : "";
-                                                const val = sliderWidget.value;
+                                                // Safely read value from the currently loaded slider inside the loader item
+                                                const val = sliderLoader.item ? sliderLoader.item.value : modelData.currentValue;
 
                                                 if (name.indexOf("temperature") !== -1 || name.indexOf("white balance") !== -1) {
                                                     return val + " K"
                                                 } else if (name.indexOf("exposure") !== -1 || name.indexOf("time") !== -1) {
-                                                    // Exposure metrics are usually absolute values (like ms or steps)
                                                     return val + " ms"
                                                 } else if (name.indexOf("gain") !== -1 || name.indexOf("pan") !== -1 || name.indexOf("tilt") !== -1) {
-                                                    // Raw unit measurements
                                                     return val
                                                 } else {
-                                                    // Default fallback: Percentage for standard 0-255 scaling bounds
                                                     const min = modelData.minimum;
                                                     const max = modelData.maximum;
                                                     if (max === min) return "0%"
@@ -278,10 +276,11 @@ Window {
                                     height: {
                                         if (modelData.menuItems && modelData.menuItems.length > 0) return comboBoxWidget.height
                                         if (modelData.minimum === 0 && modelData.maximum === 1) return switchWidget.height
-                                        return sliderWidget.height
+                                        // Fallback to loader item height or default slider sizing
+                                        return sliderLoader.item ? sliderLoader.item.height : 40
                                     }
 
-                                    // Dropdown ComboBox for Menu Controls (e.g. Auto Exposure)
+                                    // Dropdown ComboBox for Menu Controls
                                     ComboBox {
                                         id: comboBoxWidget
                                         anchors.left: parent.left
@@ -308,7 +307,6 @@ Window {
                                         onActivated: (index) => {
                                             var selectedValue = modelData.menuItems[index].index
                                             deviceManager.setWebcamControl(devicePath, modelData.id, selectedValue)
-                                            // Refresh controls model to update dependent inactive states (e.g. unlock Exposure Time slider)
                                             controlsModel = deviceManager.getControlsForDevice(devicePath)
                                         }
                                     }
@@ -329,21 +327,83 @@ Window {
                                         }
                                     }
 
-                                    // Slider for Range Controls
-                                    Slider {
-                                        id: sliderWidget
+                                    // Loader with an assigned ID to track the active slider instance
+                                    Loader {
+                                        id: sliderLoader
                                         anchors.left: parent.left
                                         anchors.right: parent.right
                                         visible: (!modelData.menuItems || modelData.menuItems.length === 0) && !(modelData.minimum === 0 && modelData.maximum === 1)
-                                        enabled: !modelData.isInactive
-                                        opacity: enabled ? 1.0 : 0.4
-                                        from: modelData.minimum
-                                        to: modelData.maximum
-                                        stepSize: modelData.step > 0 ? modelData.step : 1
-                                        value: modelData.currentValue
 
-                                        onMoved: {
-                                            deviceManager.setWebcamControl(devicePath, modelData.id, value)
+                                        property bool isTemp: modelData.name && (modelData.name.toLowerCase().indexOf("temperature") !== -1 || modelData.name.toLowerCase().indexOf("white balance") !== -1)
+
+                                        sourceComponent: isTemp ? tempSliderComp : standardSliderComp
+                                    }
+
+                                    // Dedicated Temperature Slider Component with the Custom Gradient
+                                    Component {
+                                        id: tempSliderComp
+
+                                        Slider {
+                                            id: tempWidget
+                                            width: parent.width
+                                            enabled: !modelData.isInactive
+                                            opacity: enabled ? 1.0 : 0.4
+                                            from: modelData.minimum
+                                            to: modelData.maximum
+                                            stepSize: modelData.step > 0 ? modelData.step : 1
+                                            value: modelData.currentValue
+
+                                            onMoved: {
+                                                deviceManager.setWebcamControl(devicePath, modelData.id, value)
+                                            }
+
+                                            background: Rectangle {
+                                                x: tempWidget.leftPadding
+                                                y: tempWidget.topPadding + tempWidget.availableHeight / 2 - height / 2
+                                                width: tempWidget.availableWidth
+                                                height: 6
+                                                radius: 3
+                                                color: "transparent"
+
+                                                gradient: Gradient {
+                                                    orientation: Gradient.Horizontal
+                                                    GradientStop {
+                                                        position: 0.0; color: "#4da6ff"
+                                                    } // Cool Blue
+                                                    GradientStop {
+                                                        position: 0.5; color: "#e3e3e3"
+                                                    } // Neutral Gray
+                                                    GradientStop {
+                                                        position: 1.0; color: "#ffb84d"
+                                                    } // Warm Orange
+                                                }
+
+                                                Rectangle {
+                                                    width: tempWidget.visualPosition * parent.width
+                                                    height: parent.height
+                                                    color: "transparent"
+                                                    radius: parent.radius
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // Standard Native Slider Component
+                                    Component {
+                                        id: standardSliderComp
+
+                                        Slider {
+                                            width: parent.width
+                                            enabled: !modelData.isInactive
+                                            opacity: enabled ? 1.0 : 0.4
+                                            from: modelData.minimum
+                                            to: modelData.maximum
+                                            stepSize: modelData.step > 0 ? modelData.step : 1
+                                            value: modelData.currentValue
+
+                                            onMoved: {
+                                                deviceManager.setWebcamControl(devicePath, modelData.id, value)
+                                            }
                                         }
                                     }
                                 }
