@@ -7,7 +7,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick)
+find_package(Qt6 REQUIRED COMPONENTS Quick Multimedia)
 
 qt_policy(SET QTP0001 NEW)
 qt_policy(SET QTP0004 NEW)
@@ -41,6 +41,7 @@ target_include_directories(appOptiDeck PRIVATE
 
 target_link_libraries(appOptiDeck PRIVATE
         Qt6::Quick
+        Qt6::Multimedia
 )
 
 set_target_properties(appOptiDeck PROPERTIES OUTPUT_NAME "optideck")

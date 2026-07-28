@@ -1,10 +1,11 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtMultimedia
 
 Window {
-    width: 900
-    height: 600
+    width: 1000
+    height: 700
     visible: true
     title: qsTr("OptiDeck")
 
@@ -61,7 +62,6 @@ Window {
                                     anchors.margins: 16
                                     spacing: 8
 
-                                    // TODO: dynamically set icon based on device type
                                     Image {
                                         Layout.alignment: Qt.AlignHCenter
                                         source: "image://theme/camera-web"
@@ -130,66 +130,155 @@ Window {
             property string devicePath: ""
             property var controlsModel: []
 
+            Camera {
+                id: camera
+                active: true
+            }
+
+            CaptureSession {
+                id: captureSession
+                camera: camera
+                videoOutput: videoOutput
+            }
+
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 32
-                spacing: 20
+                anchors.margins: 24
+                spacing: 16
 
+                // --- ROW 1: Header ---
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 16
 
                     Button {
                         text: qsTr("← Back")
-                        onClicked: stackView.pop()
+                        onClicked: {
+                            camera.active = false
+                            stackView.pop()
+                        }
                     }
 
-                    Text {
-                        text: deviceName
-                        font.pixelSize: 22
-                        font.bold: true
+                    Image {
+                        source: "image://theme/camera-web"
+                        sourceSize.width: 32
+                        sourceSize.height: 32
+                        fillMode: Image.PreserveAspectFit
+                    }
+
+                    ColumnLayout {
+                        spacing: 2
                         Layout.fillWidth: true
+
+                        Text {
+                            text: deviceName
+                            font.pixelSize: 18
+                            font.bold: true
+                        }
+
+                        Text {
+                            text: devicePath
+                            font.pixelSize: 11
+                            color: palette.text
+                            opacity: 0.5
+                        }
                     }
                 }
 
-                ScrollView {
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 1
+                    color: palette.mid
+                }
+
+                // --- ROW 2: Two Columns (Live Video Feed & Controls Sliders) ---
+                RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    clip: true
+                    spacing: 20
 
-                    ListView {
-                        width: parent.width
-                        model: controlsModel
-                        spacing: 16
+                    // Row 2, Column 1: Live Webcam Feed
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.preferredWidth: 3
+                        color: "#000000"
+                        radius: 8
+                        clip: true
 
-                        delegate: ColumnLayout {
+                        VideoOutput {
+                            id: videoOutput
+                            anchors.fill: parent
+                            fillMode: VideoOutput.PreserveAspectFit
+                        }
+                    }
+
+                    // Row 2, Column 2: Controls Panel
+                    ScrollView {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.preferredWidth: 2
+                        clip: true
+
+                        ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+
+                        ListView {
+                            id: controlsListView
                             width: parent.width
-                            spacing: 6
+                            model: controlsModel
+                            spacing: 16
 
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Text {
-                                    text: modelData.name
-                                    font.pixelSize: 14
+                            delegate: ColumnLayout {
+                                width: controlsListView.width - 20
+                                spacing: 6
+
+                                RowLayout {
                                     Layout.fillWidth: true
+                                    Text {
+                                        text: modelData.name
+                                        font.pixelSize: 13
+                                        Layout.fillWidth: true
+                                        elide: Text.ElideRight
+                                    }
+                                    Text {
+                                        text: modelData.minimum === 0 && modelData.maximum === 1
+                                            ? (switchWidget.checked ? "1" : "0")
+                                            : sliderWidget.value
+                                        font.pixelSize: 13
+                                        font.bold: true
+                                    }
                                 }
-                                Text {
-                                    text: slider.value
-                                    font.pixelSize: 14
-                                    font.bold: true
-                                }
-                            }
 
-                            Slider {
-                                id: slider
-                                Layout.fillWidth: true
-                                from: modelData.minimum
-                                to: modelData.maximum
-                                stepSize: modelData.step > 0 ? modelData.step : 1
-                                value: modelData.currentValue
+                                Item {
+                                    Layout.fillWidth: true
+                                    height: modelData.minimum === 0 && modelData.maximum === 1 ? switchWidget.height : sliderWidget.height
 
-                                onMoved: {
-                                    deviceManager.setWebcamControl(devicePath, modelData.id, value)
+                                    Switch {
+                                        id: switchWidget
+                                        anchors.left: parent.left
+                                        anchors.right: parent.right
+                                        visible: modelData.minimum === 0 && modelData.maximum === 1
+                                        checked: modelData.currentValue !== 0
+
+                                        onToggled: {
+                                            deviceManager.setWebcamControl(devicePath, modelData.id, checked ? 1 : 0)
+                                        }
+                                    }
+
+                                    Slider {
+                                        id: sliderWidget
+                                        anchors.left: parent.left
+                                        anchors.right: parent.right
+                                        visible: !(modelData.minimum === 0 && modelData.maximum === 1)
+                                        from: modelData.minimum
+                                        to: modelData.maximum
+                                        stepSize: modelData.step > 0 ? modelData.step : 1
+                                        value: modelData.currentValue
+
+                                        onMoved: {
+                                            deviceManager.setWebcamControl(devicePath, modelData.id, value)
+                                        }
+                                    }
                                 }
                             }
                         }
