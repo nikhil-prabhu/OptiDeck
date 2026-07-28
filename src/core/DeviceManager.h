@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CameraManager.h"
+#include "HidManager.h"
 
 class DeviceManager : public QObject {
     Q_OBJECT
@@ -22,5 +23,6 @@ signals:
 
 private:
     CameraManager m_cameraManager;
+    HidManager m_hidManager;
     QVariantList m_devices;
 };

@@ -15,7 +15,6 @@ void DeviceManager::refreshDevices() {
     m_cameraManager.refresh();
     for (const auto& camVar : m_cameraManager.cameras()) {
         QVariantMap cam = camVar.toMap();
-
         QVariantMap dev;
         dev["id"] = cam["devicePath"];
         dev["name"] = cam["cardName"];
@@ -23,12 +22,17 @@ void DeviceManager::refreshDevices() {
         dev["subtitle"] = cam["devicePath"];
         dev["isOnline"] = true;
         dev["controls"] = cam["controls"];
+        dev["connectionType"] = "usb";
+        dev["battery"] = -1;
 
         updatedList.append(dev);
     }
 
-    // TODO: Future expansion: Map HID++ devices via HidManager
-    // for (const auto &hidVar : m_hidManager.devices()) { ... }
+    // Refresh & append direct HID devices via HidManager
+    m_hidManager.refresh();
+    for (const auto& hidVar : m_hidManager.devices()) {
+        updatedList.append(hidVar);
+    }
 
     m_devices = updatedList;
     emit devicesChanged();

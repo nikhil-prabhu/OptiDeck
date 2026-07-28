@@ -9,19 +9,19 @@
 namespace fs = std::filesystem;
 
 struct DiscoveredHidDevice {
-    std::string devicePath;
-    uint8_t deviceIndex{0}; // 0xFF for Receiver, 0x01..0x06 for paired devices
+    std::vector<std::string> devicePaths; // Holds all /dev/hidrawX nodes belonging to this device
+    uint8_t deviceIndex{0};               // 0xFF for Receiver, 0x01..0x06 for paired devices
+    uint16_t busType{0};
     uint16_t vendorId{0};
     uint16_t productId{0};
     std::string deviceName;
     bool isReceiver{false};
+    int batteryPercentage{-1}; // -1 indicates unknown/unsupported
 };
 
 class HidScanner {
 public:
     static constexpr uint16_t LOGITECH_VENDOR_ID = 0x046D;
-
-    // Scans `/sys/class/hidraw` and queries HID++ receivers for paired devices
     static std::vector<DiscoveredHidDevice> scanDevices();
 };
 

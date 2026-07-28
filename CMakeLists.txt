@@ -25,6 +25,8 @@ qt_add_executable(appOptiDeck
         src/core/DeviceManager.cpp
         src/core/DeviceManager.h
         src/core/ThemeImageProvider.h
+        src/core/HidManager.cpp
+        src/core/HidManager.h
 )
 
 qt_add_qml_module(appOptiDeck
