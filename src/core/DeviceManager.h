@@ -1,7 +1,6 @@
 #pragma once
 
-#include <QVariantList>
-#include <QVariantMap>
+#include "CameraManager.h"
 
 class DeviceManager : public QObject {
     Q_OBJECT
@@ -16,11 +15,12 @@ public:
 
     Q_INVOKABLE static bool setWebcamControl(const QString &devicePath, uint32_t controlId, int value);
 
-    Q_INVOKABLE static QVariantList getControlsForDevice(const QString &devicePath);
+    Q_INVOKABLE QVariantList getControlsForDevice(const QString &devicePath);
 
 signals:
     void devicesChanged();
 
 private:
+    CameraManager m_cameraManager;
     QVariantList m_devices;
 };

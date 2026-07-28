@@ -14,10 +14,13 @@ public:
     [[nodiscard]] QVariantList cameras() const;
 
     Q_INVOKABLE void refresh();
+
     Q_INVOKABLE static bool setControlValue(const QString &devicePath, uint32_t controlId, int value);
 
-    signals:
-        void camerasChanged();
+    Q_INVOKABLE QVariantList getControlsForDevice(const QString &devicePath);
+
+signals:
+    void camerasChanged();
 
 private:
     QVariantList m_cameras;
