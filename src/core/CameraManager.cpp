@@ -1,10 +1,10 @@
 #include "CameraManager.h"
-#include "V4L2Scanner.h"
 #include "V4L2Controller.h"
+#include "V4L2Scanner.h"
 
 #include <print>
 
-CameraManager::CameraManager(QObject *parent) : QObject(parent) {
+CameraManager::CameraManager(QObject* parent) : QObject(parent) {
     refresh();
 }
 
@@ -15,17 +15,18 @@ QVariantList CameraManager::cameras() const {
 void CameraManager::refresh() {
     m_cameras.clear();
 
-    for (const auto &[devicePath, cardName, driverName, controls]: V4L2Scanner::scanCameras()) {
+    for (const auto& [devicePath, cardName, driverName, controls] : V4L2Scanner::scanCameras()) {
         QVariantMap camMap;
         camMap["devicePath"] = QString::fromStdString(devicePath);
         camMap["cardName"] = QString::fromStdString(cardName);
         camMap["driverName"] = QString::fromStdString(driverName);
 
         QVariantList controlsList;
-        for (const auto &[id, name, type, minimum, maximum, step, defaultValue, currentValue, isInactive, menuItems]:
+        for (const auto& [id, name, type, minimum, maximum, step, defaultValue, currentValue, isInactive, menuItems] :
              controls) {
             // Filter out fixed/header controls unless menu items are present
-            if (minimum == maximum && menuItems.empty()) continue;
+            if (minimum == maximum && menuItems.empty())
+                continue;
 
             QVariantMap ctrlMap;
             ctrlMap["id"] = id;
@@ -39,7 +40,7 @@ void CameraManager::refresh() {
             ctrlMap["isInactive"] = isInactive;
 
             QVariantList menuList;
-            for (const auto &[index, name]: menuItems) {
+            for (const auto& [index, name] : menuItems) {
                 QVariantMap itemMap;
                 itemMap["index"] = index;
                 itemMap["name"] = QString::fromStdString(name);
@@ -57,7 +58,7 @@ void CameraManager::refresh() {
     emit camerasChanged();
 }
 
-bool CameraManager::setControlValue(const QString &devicePath, uint32_t controlId, int value) {
+bool CameraManager::setControlValue(const QString& devicePath, uint32_t controlId, int value) {
     const bool success = V4L2Controller::setControl(devicePath.toStdString(), controlId, value);
     if (success) {
         std::println("[OptiDeck] Updated control {:#010x} on {} to {}", controlId, devicePath.toStdString(), value);
@@ -65,9 +66,9 @@ bool CameraManager::setControlValue(const QString &devicePath, uint32_t controlI
     return success;
 }
 
-QVariantList CameraManager::getControlsForDevice(const QString &devicePath) {
+QVariantList CameraManager::getControlsForDevice(const QString& devicePath) {
     refresh(); // Fetch updated states/flags from hardware
-    for (const auto &camVar: m_cameras) {
+    for (const auto& camVar : m_cameras) {
         if (QVariantMap cam = camVar.toMap(); cam["devicePath"].toString() == devicePath) {
             return cam["controls"].toList();
         }

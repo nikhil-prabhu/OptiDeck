@@ -1,6 +1,6 @@
 #include "DeviceManager.h"
 
-DeviceManager::DeviceManager(QObject *parent) : QObject(parent) {
+DeviceManager::DeviceManager(QObject* parent) : QObject(parent) {
     refreshDevices();
 }
 
@@ -13,7 +13,7 @@ void DeviceManager::refreshDevices() {
 
     // Refresh & map webcams via CameraManager
     m_cameraManager.refresh();
-    for (const auto &camVar: m_cameraManager.cameras()) {
+    for (const auto& camVar : m_cameraManager.cameras()) {
         QVariantMap cam = camVar.toMap();
 
         QVariantMap dev;
@@ -34,10 +34,10 @@ void DeviceManager::refreshDevices() {
     emit devicesChanged();
 }
 
-bool DeviceManager::setWebcamControl(const QString &devicePath, const uint32_t controlId, const int value) {
+bool DeviceManager::setWebcamControl(const QString& devicePath, const uint32_t controlId, const int value) {
     return CameraManager::setControlValue(devicePath, controlId, value);
 }
 
-QVariantList DeviceManager::getControlsForDevice(const QString &devicePath) {
+QVariantList DeviceManager::getControlsForDevice(const QString& devicePath) {
     return m_cameraManager.getControlsForDevice(devicePath);
 }

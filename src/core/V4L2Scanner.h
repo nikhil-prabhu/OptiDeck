@@ -1,10 +1,10 @@
 #ifndef OPTIDECK_V4L2SCANNER_H
 #define OPTIDECK_V4L2SCANNER_H
 
+#include <cstdint>
 #include <filesystem>
 #include <string>
 #include <vector>
-#include <cstdint>
 
 namespace fs = std::filesystem;
 
@@ -39,4 +39,4 @@ public:
     static std::vector<V4L2Camera> scanCameras();
 };
 
-#endif //OPTIDECK_V4L2SCANNER_H
+#endif // OPTIDECK_V4L2SCANNER_H

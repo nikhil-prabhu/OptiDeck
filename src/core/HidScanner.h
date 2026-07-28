@@ -1,16 +1,16 @@
 #ifndef OPTIDECK_HIDSCANNER_H
 #define OPTIDECK_HIDSCANNER_H
 
+#include <cstdint>
 #include <filesystem>
 #include <string>
 #include <vector>
-#include <cstdint>
 
 namespace fs = std::filesystem;
 
 struct DiscoveredHidDevice {
     std::string devicePath;
-    uint8_t deviceIndex{0};   // 0xFF for Receiver, 0x01..0x06 for paired devices
+    uint8_t deviceIndex{0}; // 0xFF for Receiver, 0x01..0x06 for paired devices
     uint16_t vendorId{0};
     uint16_t productId{0};
     std::string deviceName;

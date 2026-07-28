@@ -1,8 +1,8 @@
 #ifndef OPTIDECK_V4L2CONTROLLER_H
 #define OPTIDECK_V4L2CONTROLLER_H
 
-#include <string>
 #include <cstdint>
+#include <string>
 
 class V4L2Controller {
 public:
@@ -13,4 +13,4 @@ public:
     static int32_t getControl(const std::string& devicePath, uint32_t controlId);
 };
 
-#endif //OPTIDECK_V4L2CONTROLLER_H
+#endif // OPTIDECK_V4L2CONTROLLER_H
