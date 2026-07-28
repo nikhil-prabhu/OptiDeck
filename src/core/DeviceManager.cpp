@@ -11,21 +11,10 @@ QVariantList DeviceManager::devices() const {
 void DeviceManager::refreshDevices() {
     QVariantList updatedList;
 
-    // Refresh & map webcams via CameraManager
+    // Refresh & append webcams via CameraManager
     m_cameraManager.refresh();
     for (const auto& camVar : m_cameraManager.cameras()) {
-        QVariantMap cam = camVar.toMap();
-        QVariantMap dev;
-        dev["id"] = cam["devicePath"];
-        dev["name"] = cam["cardName"];
-        dev["type"] = "webcam";
-        dev["subtitle"] = cam["devicePath"];
-        dev["isOnline"] = true;
-        dev["controls"] = cam["controls"];
-        dev["connectionType"] = "usb";
-        dev["battery"] = -1;
-
-        updatedList.append(dev);
+        updatedList.append(camVar);
     }
 
     // Refresh & append direct HID devices via HidManager

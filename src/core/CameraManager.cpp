@@ -17,9 +17,13 @@ void CameraManager::refresh() {
 
     for (const auto& [devicePath, cardName, driverName, controls] : V4L2Scanner::scanCameras()) {
         QVariantMap camMap;
-        camMap["devicePath"] = QString::fromStdString(devicePath);
-        camMap["cardName"] = QString::fromStdString(cardName);
-        camMap["driverName"] = QString::fromStdString(driverName);
+        camMap["id"] = QString::fromStdString(devicePath);
+        camMap["name"] = QString::fromStdString(cardName);
+        camMap["subtitle"] = QString::fromStdString(driverName);
+        camMap["type"] = "webcam";
+        camMap["isOnline"] = true;
+        camMap["connectionType"] = "usb";
+        camMap["battery"] = -1; // TODO: implement actual battery percentage extraction
 
         QVariantList controlsList;
         for (const auto& [id, name, type, minimum, maximum, step, defaultValue, currentValue, isInactive, menuItems] :
