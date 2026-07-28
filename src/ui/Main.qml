@@ -63,8 +63,18 @@ Window {
                                     spacing: 8
 
                                     Image {
+                                        source: ((deviceType) => {
+                                            const typeIcons = {
+                                                "keyboard": "image://theme/input-keyboard",
+                                                "mouse": "image://theme/input-mouse",
+                                                "tablet": "image://theme/input-tablet",
+                                                "receiver": "image://theme/drive-removable-media",
+                                                "webcam": "image://theme/camera-web"
+                                            };
+                                            return typeIcons[deviceType] || "image://theme/preferences-desktop-peripherals";
+                                        })(modelData.type)
+
                                         Layout.alignment: Qt.AlignHCenter
-                                        source: "image://theme/camera-web"
                                         sourceSize.width: 64
                                         sourceSize.height: 64
                                         fillMode: Image.PreserveAspectFit
@@ -105,6 +115,7 @@ Window {
                                         stackView.push(deviceDetailView, {
                                             deviceName: modelData.name,
                                             devicePath: modelData.id,
+                                            deviceType: modelData.type,
                                             controlsModel: modelData.controls || []
                                         })
                                     }
@@ -128,6 +139,7 @@ Window {
         Item {
             property string deviceName: ""
             property string devicePath: ""
+            property string deviceType: ""
             property var controlsModel: []
 
             Camera {
@@ -160,7 +172,16 @@ Window {
                     }
 
                     Image {
-                        source: "image://theme/camera-web"
+                        source: ((type) => {
+                            const typeIcons = {
+                                "keyboard": "image://theme/input-keyboard",
+                                "mouse": "image://theme/input-mouse",
+                                "tablet": "image://theme/input-tablet",
+                                "receiver": "image://theme/drive-removable-media",
+                                "webcam": "image://theme/camera-web"
+                            };
+                            return typeIcons[type] || "image://theme/preferences-desktop-peripherals";
+                        })(deviceType)
                         sourceSize.width: 32
                         sourceSize.height: 32
                         fillMode: Image.PreserveAspectFit
@@ -357,7 +378,7 @@ Window {
                                                 x: tempWidget.leftPadding
                                                 y: tempWidget.topPadding + tempWidget.availableHeight / 2 - height / 2
                                                 width: tempWidget.availableWidth
-                                                height: 6
+                                                height: 18
                                                 radius: 3
                                                 color: "transparent"
 
