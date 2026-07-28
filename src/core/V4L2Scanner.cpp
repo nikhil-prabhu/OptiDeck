@@ -45,15 +45,34 @@ std::vector<V4L2Camera> V4L2Scanner::scanCameras() {
                             currentVal = ctrl.value;
                         }
 
-                        cam.controls.push_back(V4L2Control{
+                        V4L2Control v4l2Ctrl{
                             .id = queryctrl.id,
                             .name = reinterpret_cast<const char *>(queryctrl.name),
+                            .type = queryctrl.type,
                             .minimum = queryctrl.minimum,
                             .maximum = queryctrl.maximum,
                             .step = queryctrl.step,
                             .defaultValue = queryctrl.default_value,
-                            .currentValue = currentVal
-                        });
+                            .currentValue = currentVal,
+                            .isInactive = (queryctrl.flags & V4L2_CTRL_FLAG_INACTIVE) != 0
+                        };
+
+                        // Query menu items if control is a menu type
+                        if (queryctrl.type == V4L2_CTRL_TYPE_MENU) {
+                            v4l2_querymenu querymenu{};
+                            querymenu.id = queryctrl.id;
+                            for (int i = queryctrl.minimum; i <= queryctrl.maximum; ++i) {
+                                querymenu.index = i;
+                                if (::ioctl(fd, VIDIOC_QUERYMENU, &querymenu) == 0) {
+                                    v4l2Ctrl.menuItems.push_back(V4L2MenuItem{
+                                        .index = static_cast<uint32_t>(i),
+                                        .name = reinterpret_cast<const char *>(querymenu.name)
+                                    });
+                                }
+                            }
+                        }
+
+                        cam.controls.push_back(v4l2Ctrl);
                     }
                     queryctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
                 }

@@ -16,6 +16,8 @@ public:
 
     Q_INVOKABLE static bool setWebcamControl(const QString &devicePath, uint32_t controlId, int value);
 
+    Q_INVOKABLE static QVariantList getControlsForDevice(const QString &devicePath);
+
 signals:
     void devicesChanged();
 

@@ -23,18 +23,31 @@ void DeviceManager::refreshDevices() {
         dev["isOnline"] = true;
 
         QVariantList controlsList;
-        for (const auto &ctrl: cam.controls) {
+
+        for (const auto &[id, name, type, minimum, maximum, step, defaultValue, currentValue, isInactive, menuItems]
+             : cam.controls) {
             // Skip fixed or read-only controls
-            if (ctrl.minimum == ctrl.maximum) continue;
+            if (minimum == maximum && menuItems.empty()) continue;
 
             QVariantMap ctrlMap;
-            ctrlMap["id"] = ctrl.id;
-            ctrlMap["name"] = QString::fromStdString(ctrl.name);
-            ctrlMap["minimum"] = ctrl.minimum;
-            ctrlMap["maximum"] = ctrl.maximum;
-            ctrlMap["step"] = ctrl.step;
-            ctrlMap["defaultValue"] = ctrl.defaultValue;
-            ctrlMap["currentValue"] = ctrl.currentValue;
+            ctrlMap["id"] = id;
+            ctrlMap["name"] = QString::fromStdString(name);
+            ctrlMap["minimum"] = minimum;
+            ctrlMap["maximum"] = maximum;
+            ctrlMap["step"] = step;
+            ctrlMap["defaultValue"] = defaultValue;
+            ctrlMap["currentValue"] = currentValue;
+            ctrlMap["isInactive"] = isInactive;
+
+            QVariantList menuList;
+            for (const auto &[index, name]: menuItems) {
+                QVariantMap itemMap;
+                itemMap["index"] = index;
+                itemMap["name"] = QString::fromStdString(name);
+                menuList.append(itemMap);
+            }
+
+            ctrlMap["menuItems"] = menuList;
             controlsList.append(ctrlMap);
         }
         dev["controls"] = controlsList;
@@ -47,4 +60,40 @@ void DeviceManager::refreshDevices() {
 
 bool DeviceManager::setWebcamControl(const QString &devicePath, const uint32_t controlId, const int value) {
     return V4L2Controller::setControl(devicePath.toStdString(), controlId, value);
+}
+
+QVariantList DeviceManager::getControlsForDevice(const QString &devicePath) {
+    for (const auto cameras = V4L2Scanner::scanCameras(); const auto &cam: cameras) {
+        if (QString::fromStdString(cam.devicePath) == devicePath) {
+            QVariantList controlsList;
+            for (const auto &[id, name, type, minimum, maximum, step, defaultValue, currentValue, isInactive, menuItems]
+                 : cam.controls) {
+                if (minimum == maximum && menuItems.empty()) continue;
+
+                QVariantMap ctrlMap;
+                ctrlMap["id"] = id;
+                ctrlMap["name"] = QString::fromStdString(name);
+                ctrlMap["type"] = type;
+                ctrlMap["minimum"] = minimum;
+                ctrlMap["maximum"] = maximum;
+                ctrlMap["step"] = step;
+                ctrlMap["defaultValue"] = defaultValue;
+                ctrlMap["currentValue"] = currentValue;
+                ctrlMap["isInactive"] = isInactive;
+
+                QVariantList menuList;
+                for (const auto &[index, name]: menuItems) {
+                    QVariantMap itemMap;
+                    itemMap["index"] = index;
+                    itemMap["name"] = QString::fromStdString(name);
+                    menuList.append(itemMap);
+                }
+                ctrlMap["menuItems"] = menuList;
+
+                controlsList.append(ctrlMap);
+            }
+            return controlsList;
+        }
+    }
+    return {};
 }

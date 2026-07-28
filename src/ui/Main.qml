@@ -241,9 +241,15 @@ Window {
                                         elide: Text.ElideRight
                                     }
                                     Text {
-                                        text: modelData.minimum === 0 && modelData.maximum === 1
-                                            ? (switchWidget.checked ? "1" : "0")
-                                            : sliderWidget.value
+                                        text: {
+                                            if (modelData.menuItems && modelData.menuItems.length > 0) {
+                                                return comboBoxWidget.currentText
+                                            } else if (modelData.minimum === 0 && modelData.maximum === 1) {
+                                                return switchWidget.checked ? "1" : "0"
+                                            } else {
+                                                return sliderWidget.value
+                                            }
+                                        }
                                         font.pixelSize: 13
                                         font.bold: true
                                     }
@@ -251,25 +257,68 @@ Window {
 
                                 Item {
                                     Layout.fillWidth: true
-                                    height: modelData.minimum === 0 && modelData.maximum === 1 ? switchWidget.height : sliderWidget.height
+                                    height: {
+                                        if (modelData.menuItems && modelData.menuItems.length > 0) return comboBoxWidget.height
+                                        if (modelData.minimum === 0 && modelData.maximum === 1) return switchWidget.height
+                                        return sliderWidget.height
+                                    }
 
+                                    // Dropdown ComboBox for Menu Controls (e.g. Auto Exposure)
+                                    ComboBox {
+                                        id: comboBoxWidget
+                                        anchors.left: parent.left
+                                        anchors.right: parent.right
+                                        visible: modelData.menuItems && modelData.menuItems.length > 0
+                                        enabled: !modelData.isInactive
+                                        opacity: enabled ? 1.0 : 0.4
+
+                                        model: modelData.menuItems || []
+                                        textRole: "name"
+                                        valueRole: "index"
+
+                                        Component.onCompleted: {
+                                            if (modelData.menuItems) {
+                                                for (var i = 0; i < modelData.menuItems.length; i++) {
+                                                    if (modelData.menuItems[i].index === modelData.currentValue) {
+                                                        currentIndex = i
+                                                        break
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        onActivated: (index) => {
+                                            var selectedValue = modelData.menuItems[index].index
+                                            deviceManager.setWebcamControl(devicePath, modelData.id, selectedValue)
+                                            // Refresh controls model to update dependent inactive states (e.g. unlock Exposure Time slider)
+                                            controlsModel = deviceManager.getControlsForDevice(devicePath)
+                                        }
+                                    }
+
+                                    // Binary Switch for Toggle Flags
                                     Switch {
                                         id: switchWidget
                                         anchors.left: parent.left
                                         anchors.right: parent.right
-                                        visible: modelData.minimum === 0 && modelData.maximum === 1
+                                        visible: (!modelData.menuItems || modelData.menuItems.length === 0) && (modelData.minimum === 0 && modelData.maximum === 1)
+                                        enabled: !modelData.isInactive
+                                        opacity: enabled ? 1.0 : 0.4
                                         checked: modelData.currentValue !== 0
 
                                         onToggled: {
                                             deviceManager.setWebcamControl(devicePath, modelData.id, checked ? 1 : 0)
+                                            controlsModel = deviceManager.getControlsForDevice(devicePath)
                                         }
                                     }
 
+                                    // Slider for Range Controls
                                     Slider {
                                         id: sliderWidget
                                         anchors.left: parent.left
                                         anchors.right: parent.right
-                                        visible: !(modelData.minimum === 0 && modelData.maximum === 1)
+                                        visible: (!modelData.menuItems || modelData.menuItems.length === 0) && !(modelData.minimum === 0 && modelData.maximum === 1)
+                                        enabled: !modelData.isInactive
+                                        opacity: enabled ? 1.0 : 0.4
                                         from: modelData.minimum
                                         to: modelData.maximum
                                         stepSize: modelData.step > 0 ? modelData.step : 1

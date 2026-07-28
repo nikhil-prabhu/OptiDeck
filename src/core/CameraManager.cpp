@@ -15,25 +15,37 @@ QVariantList CameraManager::cameras() const {
 void CameraManager::refresh() {
     m_cameras.clear();
 
-    for (auto scannedCameras = V4L2Scanner::scanCameras(); const auto& [devicePath, cardName, driverName, controls] : scannedCameras) {
+    for (const auto &[devicePath, cardName, driverName, controls]: V4L2Scanner::scanCameras()) {
         QVariantMap camMap;
         camMap["devicePath"] = QString::fromStdString(devicePath);
         camMap["cardName"] = QString::fromStdString(cardName);
         camMap["driverName"] = QString::fromStdString(driverName);
 
         QVariantList controlsList;
-        for (const auto& [id, name, minimum, maximum, step, defaultValue, currentValue] : controls) {
-            // Filter out menu/header controls with 0-range
-            if (minimum == maximum) continue;
+        for (const auto &[id, name, type, minimum, maximum, step, defaultValue, currentValue, isInactive, menuItems]:
+             controls) {
+            // Filter out menu/header controls with 0-range unless menu items are present
+            if (minimum == maximum && menuItems.empty()) continue;
 
             QVariantMap ctrlMap;
             ctrlMap["id"] = id;
             ctrlMap["name"] = QString::fromStdString(name);
+            ctrlMap["type"] = type;
             ctrlMap["minimum"] = minimum;
             ctrlMap["maximum"] = maximum;
             ctrlMap["step"] = step;
             ctrlMap["defaultValue"] = defaultValue;
             ctrlMap["currentValue"] = currentValue;
+            ctrlMap["isInactive"] = isInactive;
+
+            QVariantList menuList;
+            for (const auto &[index, name]: menuItems) {
+                QVariantMap itemMap;
+                itemMap["index"] = index;
+                itemMap["name"] = QString::fromStdString(name);
+                menuList.append(itemMap);
+            }
+            ctrlMap["menuItems"] = menuList;
 
             controlsList.append(ctrlMap);
         }
