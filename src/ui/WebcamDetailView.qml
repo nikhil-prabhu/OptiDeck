@@ -1,0 +1,291 @@
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import QtMultimedia
+
+Item {
+    property string deviceName: ""
+    property string devicePath: ""
+    property string deviceType: ""
+    property var controlsModel: []
+
+    signal goBack()
+
+    Camera {
+        id: camera
+        active: true
+    }
+
+    CaptureSession {
+        id: captureSession
+        camera: camera
+        videoOutput: videoOutput
+    }
+
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: 24
+        spacing: 16
+
+        // --- ROW 1: Header ---
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 16
+
+            Button {
+                text: qsTr("← Back")
+                onClicked: {
+                    camera.active = false
+                    goBack()
+                }
+            }
+
+            Image {
+                source: "image://theme/camera-web"
+                sourceSize.width: 32
+                sourceSize.height: 32
+                fillMode: Image.PreserveAspectFit
+            }
+
+            ColumnLayout {
+                spacing: 2
+                Layout.fillWidth: true
+
+                Text {
+                    text: deviceName
+                    font.pixelSize: 18
+                    font.bold: true
+                }
+
+                Text {
+                    text: devicePath
+                    font.pixelSize: 11
+                    color: palette.text
+                    opacity: 0.5
+                }
+            }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            height: 1
+            color: palette.mid
+        }
+
+        // --- ROW 2: Live Video Feed & Controls ---
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            spacing: 20
+
+            // Row 2, Column 1: Live Webcam Feed
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredWidth: 3
+                color: "#000000"
+                radius: 8
+                clip: true
+
+                VideoOutput {
+                    id: videoOutput
+                    anchors.fill: parent
+                    fillMode: VideoOutput.PreserveAspectFit
+                }
+            }
+
+            // Row 2, Column 2: Controls Panel
+            ScrollView {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredWidth: 2
+                clip: true
+
+                ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+
+                ListView {
+                    id: controlsListView
+                    width: parent.width
+                    model: controlsModel
+                    spacing: 48
+
+                    delegate: ColumnLayout {
+                        width: controlsListView.width - 20
+                        spacing: 8
+                        opacity: modelData.isInactive ? 0.5 : 1.0
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Text {
+                                text: modelData.name
+                                font.pixelSize: 13
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                            }
+                            Text {
+                                text: {
+                                    if (modelData.menuItems && modelData.menuItems.length > 0) {
+                                        return comboBoxWidget.currentText
+                                    } else if (modelData.minimum === 0 && modelData.maximum === 1) {
+                                        return switchWidget.checked ? "ON" : "OFF"
+                                    } else {
+                                        const name = modelData.name ? modelData.name.toLowerCase() : "";
+                                        const val = sliderLoader.item ? sliderLoader.item.value : modelData.currentValue;
+
+                                        if (name.indexOf("temperature") !== -1 || name.indexOf("white balance") !== -1) {
+                                            return val + " K"
+                                        } else if (name.indexOf("exposure") !== -1 || name.indexOf("time") !== -1) {
+                                            return val + " ms"
+                                        } else if (name.indexOf("gain") !== -1 || name.indexOf("pan") !== -1 || name.indexOf("tilt") !== -1) {
+                                            return val
+                                        } else {
+                                            const min = modelData.minimum;
+                                            const max = modelData.maximum;
+                                            if (max === min) return "0%"
+                                            const percent = Math.round(((val - min) / (max - min)) * 100);
+                                            return percent + "%"
+                                        }
+                                    }
+                                }
+                                font.pixelSize: 13
+                                font.bold: true
+                            }
+                        }
+
+                        Item {
+                            Layout.fillWidth: true
+                            height: {
+                                if (modelData.menuItems && modelData.menuItems.length > 0) return comboBoxWidget.height
+                                if (modelData.minimum === 0 && modelData.maximum === 1) return switchWidget.height
+                                return sliderLoader.item ? sliderLoader.item.height : 40
+                            }
+
+                            // Dropdown ComboBox for Menu Controls
+                            ComboBox {
+                                id: comboBoxWidget
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                visible: modelData.menuItems && modelData.menuItems.length > 0
+                                enabled: !modelData.isInactive
+
+                                model: modelData.menuItems || []
+                                textRole: "name"
+                                valueRole: "index"
+
+                                Component.onCompleted: {
+                                    if (modelData.menuItems) {
+                                        for (var i = 0; i < modelData.menuItems.length; i++) {
+                                            if (modelData.menuItems[i].index === modelData.currentValue) {
+                                                currentIndex = i
+                                                break
+                                            }
+                                        }
+                                    }
+                                }
+
+                                onActivated: (index) => {
+                                    var selectedValue = modelData.menuItems[index].index
+                                    deviceManager.setWebcamControl(devicePath, modelData.id, selectedValue)
+                                    controlsModel = deviceManager.getControlsForDevice(devicePath)
+                                }
+                            }
+
+                            // Binary Switch for Toggle Flags
+                            Switch {
+                                id: switchWidget
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                visible: (!modelData.menuItems || modelData.menuItems.length === 0) && (modelData.minimum === 0 && modelData.maximum === 1)
+                                enabled: !modelData.isInactive
+                                checked: modelData.currentValue !== 0
+
+                                onToggled: {
+                                    deviceManager.setWebcamControl(devicePath, modelData.id, checked ? 1 : 0)
+                                    controlsModel = deviceManager.getControlsForDevice(devicePath)
+                                }
+                            }
+
+                            // Loader for Sliders
+                            Loader {
+                                id: sliderLoader
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                visible: (!modelData.menuItems || modelData.menuItems.length === 0) && !(modelData.minimum === 0 && modelData.maximum === 1)
+
+                                property bool isTemp: modelData.name && (modelData.name.toLowerCase().indexOf("temperature") !== -1 || modelData.name.toLowerCase().indexOf("white balance") !== -1)
+
+                                sourceComponent: isTemp ? tempSliderComp : standardSliderComp
+                            }
+
+                            // Dedicated Temperature Slider Component
+                            Component {
+                                id: tempSliderComp
+
+                                Slider {
+                                    id: tempWidget
+                                    width: parent.width
+                                    enabled: !modelData.isInactive
+                                    from: modelData.minimum
+                                    to: modelData.maximum
+                                    stepSize: modelData.step > 0 ? modelData.step : 1
+                                    value: modelData.currentValue
+
+                                    onMoved: {
+                                        deviceManager.setWebcamControl(devicePath, modelData.id, value)
+                                    }
+
+                                    background: Rectangle {
+                                        x: tempWidget.leftPadding
+                                        y: tempWidget.topPadding + tempWidget.availableHeight / 2 - height / 2
+                                        width: tempWidget.availableWidth
+                                        height: 18
+                                        radius: 3
+                                        color: "transparent"
+
+                                        gradient: Gradient {
+                                            orientation: Gradient.Horizontal
+                                            GradientStop {
+                                                position: 0.0; color: "#4da6ff"
+                                            }
+                                            GradientStop {
+                                                position: 0.5; color: "#e3e3e3"
+                                            }
+                                            GradientStop {
+                                                position: 1.0; color: "#ffb84d"
+                                            }
+                                        }
+
+                                        Rectangle {
+                                            width: tempWidget.visualPosition * parent.width
+                                            height: parent.height
+                                            color: "transparent"
+                                            radius: parent.radius
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Standard Native Slider Component
+                            Component {
+                                id: standardSliderComp
+
+                                Slider {
+                                    width: parent.width
+                                    enabled: !modelData.isInactive
+                                    from: modelData.minimum
+                                    to: modelData.maximum
+                                    stepSize: modelData.step > 0 ? modelData.step : 1
+                                    value: modelData.currentValue
+
+                                    onMoved: {
+                                        deviceManager.setWebcamControl(devicePath, modelData.id, value)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

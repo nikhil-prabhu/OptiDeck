@@ -34,7 +34,10 @@ qt_add_qml_module(appOptiDeck
         VERSION 0.1
         RESOURCE_PREFIX "/qt/qml"
         QML_FILES
-            src/ui/Main.qml
+        src/ui/Main.qml
+        src/ui/DashboardView.qml
+        src/ui/HidDetailView.qml
+        src/ui/WebcamDetailView.qml
 )
 
 target_include_directories(appOptiDeck PRIVATE
