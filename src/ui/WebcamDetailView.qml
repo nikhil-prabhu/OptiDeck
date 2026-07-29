@@ -1,15 +1,20 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Controls as Controls
 import QtMultimedia
+import org.kde.kirigami as Kirigami
 
-Item {
+Kirigami.Page {
+    id: root
     property string deviceName: ""
     property string devicePath: ""
     property string deviceType: ""
     property var controlsModel: []
 
-    signal goBack()
+    title: deviceName
+    padding: Kirigami.Units.largeSpacing
+
+    Component.onDestruction: camera.active = false
 
     Camera {
         id: camera
@@ -24,67 +29,30 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 24
-        spacing: 16
+        spacing: Kirigami.Units.largeSpacing
 
-        // --- ROW 1: Header ---
-        RowLayout {
+        Controls.Label {
             Layout.fillWidth: true
-            spacing: 16
-
-            Button {
-                text: qsTr("← Back")
-                onClicked: {
-                    camera.active = false
-                    goBack()
-                }
-            }
-
-            Image {
-                source: "image://theme/camera-web"
-                sourceSize.width: 32
-                sourceSize.height: 32
-                fillMode: Image.PreserveAspectFit
-            }
-
-            ColumnLayout {
-                spacing: 2
-                Layout.fillWidth: true
-
-                Text {
-                    text: deviceName
-                    font.pixelSize: 18
-                    font.bold: true
-                }
-
-                Text {
-                    text: devicePath
-                    font.pixelSize: 11
-                    color: palette.text
-                    opacity: 0.5
-                }
-            }
+            visible: root.devicePath.length > 0
+            text: root.devicePath
+            opacity: 0.6
+            font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+            elide: Text.ElideRight
         }
 
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: palette.mid
-        }
-
-        // --- ROW 2: Live Video Feed & Controls ---
+        // --- Live Video Feed & Controls ---
         RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            spacing: 20
+            spacing: Kirigami.Units.largeSpacing
 
-            // Row 2, Column 1: Live Webcam Feed
+            // Column 1: Live Webcam Feed
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.preferredWidth: 3
                 color: "#000000"
-                radius: 8
+                radius: Kirigami.Units.cornerRadius
                 clip: true
 
                 VideoOutput {
@@ -94,35 +62,34 @@ Item {
                 }
             }
 
-            // Row 2, Column 2: Controls Panel
-            ScrollView {
+            // Column 2: Controls Panel
+            Controls.ScrollView {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.preferredWidth: 2
                 clip: true
 
-                ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+                Controls.ScrollBar.vertical.policy: Controls.ScrollBar.AlwaysOn
 
                 ListView {
                     id: controlsListView
                     width: parent.width
-                    model: controlsModel
-                    spacing: 48
+                    model: root.controlsModel
+                    spacing: Kirigami.Units.gridUnit * 2.5
 
                     delegate: ColumnLayout {
-                        width: controlsListView.width - 20
-                        spacing: 8
+                        width: controlsListView.width - Kirigami.Units.largeSpacing
+                        spacing: Kirigami.Units.smallSpacing
                         opacity: modelData.isInactive ? 0.5 : 1.0
 
                         RowLayout {
                             Layout.fillWidth: true
-                            Text {
+                            Controls.Label {
                                 text: modelData.name
-                                font.pixelSize: 13
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
                             }
-                            Text {
+                            Controls.Label {
                                 text: {
                                     if (modelData.menuItems && modelData.menuItems.length > 0) {
                                         return comboBoxWidget.currentText
@@ -147,7 +114,6 @@ Item {
                                         }
                                     }
                                 }
-                                font.pixelSize: 13
                                 font.bold: true
                             }
                         }
@@ -157,11 +123,11 @@ Item {
                             height: {
                                 if (modelData.menuItems && modelData.menuItems.length > 0) return comboBoxWidget.height
                                 if (modelData.minimum === 0 && modelData.maximum === 1) return switchWidget.height
-                                return sliderLoader.item ? sliderLoader.item.height : 40
+                                return sliderLoader.item ? sliderLoader.item.height : Kirigami.Units.gridUnit * 2
                             }
 
                             // Dropdown ComboBox for Menu Controls
-                            ComboBox {
+                            Controls.ComboBox {
                                 id: comboBoxWidget
                                 anchors.left: parent.left
                                 anchors.right: parent.right
@@ -185,13 +151,15 @@ Item {
 
                                 onActivated: (index) => {
                                     var selectedValue = modelData.menuItems[index].index
-                                    deviceManager.setWebcamControl(devicePath, modelData.id, selectedValue)
-                                    controlsModel = deviceManager.getControlsForDevice(devicePath)
+                                    deviceManager.setWebcamControl(root.devicePath, modelData.id, selectedValue)
+                                    Qt.callLater(() => {
+                                        root.controlsModel = deviceManager.getControlsForDevice(root.devicePath)
+                                    })
                                 }
                             }
 
                             // Binary Switch for Toggle Flags
-                            Switch {
+                            Controls.Switch {
                                 id: switchWidget
                                 anchors.left: parent.left
                                 anchors.right: parent.right
@@ -200,8 +168,10 @@ Item {
                                 checked: modelData.currentValue !== 0
 
                                 onToggled: {
-                                    deviceManager.setWebcamControl(devicePath, modelData.id, checked ? 1 : 0)
-                                    controlsModel = deviceManager.getControlsForDevice(devicePath)
+                                    deviceManager.setWebcamControl(root.devicePath, modelData.id, checked ? 1 : 0)
+                                    Qt.callLater(() => {
+                                        root.controlsModel = deviceManager.getControlsForDevice(root.devicePath)
+                                    })
                                 }
                             }
 
@@ -221,7 +191,7 @@ Item {
                             Component {
                                 id: tempSliderComp
 
-                                Slider {
+                                Controls.Slider {
                                     id: tempWidget
                                     width: parent.width
                                     enabled: !modelData.isInactive
@@ -231,7 +201,15 @@ Item {
                                     value: modelData.currentValue
 
                                     onMoved: {
-                                        deviceManager.setWebcamControl(devicePath, modelData.id, value)
+                                        deviceManager.setWebcamControl(root.devicePath, modelData.id, value)
+                                    }
+
+                                    onPressedChanged: {
+                                        if (!pressed) {
+                                            Qt.callLater(() => {
+                                                root.controlsModel = deviceManager.getControlsForDevice(root.devicePath)
+                                            })
+                                        }
                                     }
 
                                     background: Rectangle {
@@ -269,7 +247,7 @@ Item {
                             Component {
                                 id: standardSliderComp
 
-                                Slider {
+                                Controls.Slider {
                                     width: parent.width
                                     enabled: !modelData.isInactive
                                     from: modelData.minimum
@@ -278,7 +256,15 @@ Item {
                                     value: modelData.currentValue
 
                                     onMoved: {
-                                        deviceManager.setWebcamControl(devicePath, modelData.id, value)
+                                        deviceManager.setWebcamControl(root.devicePath, modelData.id, value)
+                                    }
+
+                                    onPressedChanged: {
+                                        if (!pressed) {
+                                            Qt.callLater(() => {
+                                                root.controlsModel = deviceManager.getControlsForDevice(root.devicePath)
+                                            })
+                                        }
                                     }
                                 }
                             }

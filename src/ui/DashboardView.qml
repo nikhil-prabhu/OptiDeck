@@ -1,169 +1,133 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Controls as Controls
+import org.kde.kirigami as Kirigami
 
-Item {
+Kirigami.ScrollablePage {
+    id: root
+    title: i18nc("@title:page", "My Devices")
+
+    padding: Kirigami.Units.gridUnit
+
     signal openWebcamDetail(var deviceData)
 
     signal openHidDetail(var deviceData)
 
-    ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: 32
-        spacing: 24
+    actions: Kirigami.Action
+    {
+        text: i18n("Refresh")
+        icon.name: "view-refresh"
+        onTriggered: deviceManager.refreshDevices()
+    }
 
-        RowLayout {
-            Layout.fillWidth: true
-            Text {
-                text: qsTr("My Devices")
-                font.pixelSize: 24
-                font.bold: true
-                Layout.fillWidth: true
-            }
-            Button {
-                text: qsTr("Refresh")
-                onClicked: deviceManager.refreshDevices()
-            }
+    function deviceIconSource(deviceType) {
+        const typeIcons = {
+            "keyboard": "input-keyboard",
+            "mouse": "input-mouse",
+            "tablet": "input-tablet",
+            "receiver": "drive-removable-media",
+            "headset": "audio-headset",
+            "webcam": "camera-web"
         }
+        return typeIcons[deviceType] || "preferences-desktop-peripherals"
+    }
 
-        // --- Horizontal Scrolling Carousel ---
-        ScrollView {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 300 // Expanded height to fit larger cards
-            clip: true
-            ScrollBar.horizontal.policy: ScrollBar.AsNeeded
-            ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+    function connectionIconSource(connectionType) {
+        const typeIcons = {
+            "bluetooth": "network-bluetooth-symbolic",
+            "usb": "drive-removable-media-symbolic",
+            "receiver": "network-wireless-hotspot-symbolic"
+        }
+        return typeIcons[connectionType] || "preferences-desktop-peripherals"
+    }
 
-            RowLayout {
-                spacing: 20
+    Flow {
+        width: parent.width
+        spacing: Kirigami.Units.gridUnit
 
-                Repeater {
-                    model: deviceManager.devices
-                    delegate: Item {
-                        width: 280
-                        height: 300
+        Repeater {
+            model: deviceManager.devices
 
-                        Rectangle {
-                            anchors.fill: parent
-                            color: mouseArea.containsMouse ? palette.alternateBase : palette.base
-                            border.color: palette.mid
-                            border.width: 1
-                            radius: 12
+            delegate: Kirigami.AbstractCard
+            {
+                width: Kirigami.Units.gridUnit * 16
+                height: Kirigami.Units.gridUnit * 14
 
-                            ColumnLayout {
-                                anchors.fill: parent
-                                anchors.margins: 20
-                                spacing: 12
+                contentItem: Item {
+                    anchors.fill: parent
 
-                                Image {
-                                    source: ((deviceType) => {
-                                        const typeIcons = {
-                                            "keyboard": "image://theme/input-keyboard",
-                                            "mouse": "image://theme/input-mouse",
-                                            "tablet": "image://theme/input-tablet",
-                                            "receiver": "image://theme/drive-removable-media",
-                                            "headset": "image://theme/audio-headset",
-                                            "webcam": "image://theme/camera-web"
-                                        };
-                                        return typeIcons[deviceType] || "image://theme/preferences-desktop-peripherals";
-                                    })(modelData.type)
+                    ColumnLayout {
+                        id: cardLayout
+                        anchors.fill: parent
+                        spacing: Kirigami.Units.largeSpacing
 
-                                    Layout.alignment: Qt.AlignHCenter
-                                    sourceSize.width: 96
-                                    sourceSize.height: 96
-                                    fillMode: Image.PreserveAspectFit
-                                }
+                        Kirigami.Icon {
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.enormous
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.enormous
+                            source: root.deviceIconSource(modelData.type)
+                        }
 
-                                Item {
-                                    Layout.fillHeight: true
-                                }
+                        Item {
+                            Layout.fillHeight: true
+                        }
 
-                                Text {
-                                    text: modelData.name
-                                    font.bold: true
-                                    font.pixelSize: 15
-                                    horizontalAlignment: Text.AlignHCenter
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                }
+                        Kirigami.Heading {
+                            text: modelData.name
+                            horizontalAlignment: Text.AlignHCenter
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true
+                            type: Kirigami.Heading.Type.Primary
+                        }
 
-                                RowLayout {
-                                    Layout.fillWidth: true
-                                    Layout.alignment: Qt.AlignHCenter
-                                    spacing: 12
+                        RowLayout {
+                            Layout.alignment: Qt.AlignHCenter
+                            spacing: Kirigami.Units.largeSpacing
 
-                                    Item {
-                                        Layout.fillWidth: true
-                                    }
-
-                                    Image {
-                                        source: ((connectionType) => {
-                                            const typeIcons = {
-                                                "bluetooth": "image://theme/network-bluetooth-symbolic",
-                                                "usb": "image://theme/drive-removable-media-symbolic",
-                                                "receiver": "image://theme/network-wireless-hotspot-symbolic",
-                                            };
-                                            return typeIcons[connectionType] || "image://theme/preferences-desktop-peripherals";
-                                        })(modelData.connectionType)
-                                        sourceSize.width: 32
-                                        sourceSize.height: 32
-                                        fillMode: Image.PreserveAspectFit
-                                    }
-
-                                    RowLayout {
-                                        visible: modelData.battery !== undefined && modelData.battery >= 0
-                                        spacing: 4
-
-                                        Image {
-                                            source: "image://theme/battery"
-                                            sourceSize.width: 14
-                                            sourceSize.height: 14
-                                            fillMode: Image.PreserveAspectFit
-                                        }
-                                        Text {
-                                            text: modelData.battery + "%"
-                                            font.pixelSize: 12
-                                            color: palette.text
-                                        }
-                                    }
-
-                                    Item {
-                                        Layout.fillWidth: true
-                                    }
-                                }
-
-                                Item {
-                                    Layout.fillHeight: true
-                                }
+                            Kirigami.Icon {
+                                source: root.connectionIconSource(modelData.connectionType)
+                                implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                                implicitHeight: Kirigami.Units.iconSizes.smallMedium
                             }
 
-                            MouseArea {
-                                id: mouseArea
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                onClicked: {
-                                    var deviceData = {
-                                        deviceName: modelData.name,
-                                        devicePath: modelData.id,
-                                        deviceType: modelData.type,
-                                        controlsModel: modelData.controls || []
-                                    }
+                            RowLayout {
+                                visible: modelData.battery !== undefined && modelData.battery >= 0
+                                spacing: Kirigami.Units.smallSpacing / 2
 
-                                    if (modelData.type === "webcam") {
-                                        openWebcamDetail(deviceData)
-                                    } else {
-                                        openHidDetail(deviceData)
-                                    }
+                                Kirigami.Icon {
+                                    source: "battery"
+                                    implicitWidth: Kirigami.Units.iconSizes.small
+                                    implicitHeight: Kirigami.Units.iconSizes.small
+                                }
+                                Controls.Label {
+                                    text: modelData.battery + "%"
+                                    opacity: 0.8
+                                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
                                 }
                             }
                         }
+
+                        Item {
+                            Layout.fillHeight: true
+                        }
+                    }
+                }
+
+                onClicked: {
+                    const deviceData = {
+                        deviceName: modelData.name,
+                        devicePath: modelData.id,
+                        deviceType: modelData.type,
+                        controlsModel: modelData.controls || []
+                    }
+
+                    if (modelData.type === "webcam") {
+                        root.openWebcamDetail(deviceData)
+                    } else {
+                        root.openHidDetail(deviceData)
                     }
                 }
             }
-        }
-
-        Item {
-            Layout.fillHeight: true
         }
     }
 }

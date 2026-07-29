@@ -1,27 +1,27 @@
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
+import org.kde.kirigami as Kirigami
 
-Window {
+Kirigami.ApplicationWindow {
+    id: root
     width: 1000
     height: 700
-    visible: true
-    title: qsTr("OptiDeck")
+    title: i18nc("@title:window", "OptiDeck")
 
-    StackView {
-        id: stackView
-        anchors.fill: parent
-        initialItem: dashboardViewComponent
-    }
+    pageStack.globalToolBar.style: Kirigami.ApplicationHeaderStyle.ToolBar
+    pageStack.globalToolBar.showNavigationButtons: Kirigami.ApplicationHeaderStyle.ShowBackButton
+    pageStack.columnView.columnResizeMode: Kirigami.ColumnView.SingleColumn
+
+    pageStack.initialPage: dashboardViewComponent
+    pageStack.popHiddenPages: true
 
     Component {
         id: dashboardViewComponent
         DashboardView {
             onOpenWebcamDetail: (deviceData) => {
-                stackView.push(webcamDetailViewComponent, deviceData)
+                root.pageStack.push(webcamDetailViewComponent, deviceData)
             }
             onOpenHidDetail: (deviceData) => {
-                stackView.push(hidDetailViewComponent, deviceData)
+                root.pageStack.push(hidDetailViewComponent, deviceData)
             }
         }
     }
@@ -29,14 +29,12 @@ Window {
     Component {
         id: webcamDetailViewComponent
         WebcamDetailView {
-            onGoBack: stackView.pop()
         }
     }
 
     Component {
         id: hidDetailViewComponent
         HidDetailView {
-            onGoBack: stackView.pop()
         }
     }
 }

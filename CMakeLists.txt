@@ -7,46 +7,34 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Quick Multimedia)
+find_package(ECM 6.0.0 REQUIRED NO_MODULE)
+set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
+
+include(KDEInstallDirs)
+include(ECMFindQmlModule)
+include(ECMQmlModule)
+
+find_package(Qt6 REQUIRED COMPONENTS
+        Core
+        Quick
+        Gui
+        QuickControls2
+        Multimedia
+        Widgets
+)
+find_package(KF6 REQUIRED COMPONENTS
+        Kirigami
+        I18n
+        QQC2DesktopStyle
+        IconThemes
+)
+
 
 qt_policy(SET QTP0001 NEW)
 qt_policy(SET QTP0004 NEW)
 
-qt_add_executable(appOptiDeck
-        src/main.cpp
-        src/core/V4L2Scanner.cpp
-        src/core/V4L2Scanner.h
-        src/core/V4L2Controller.cpp
-        src/core/V4L2Controller.h
-        src/core/CameraManager.cpp
-        src/core/CameraManager.h
-        src/core/HidScanner.cpp
-        src/core/HidScanner.h
-        src/core/DeviceManager.cpp
-        src/core/DeviceManager.h
-        src/core/ThemeImageProvider.h
-        src/core/HidManager.cpp
-        src/core/HidManager.h
-)
+ecm_find_qmlmodule(org.kde.kirigami REQUIRED)
 
-qt_add_qml_module(appOptiDeck
-        URI OptiDeck
-        VERSION 0.1
-        RESOURCE_PREFIX "/qt/qml"
-        QML_FILES
-        src/ui/Main.qml
-        src/ui/DashboardView.qml
-        src/ui/HidDetailView.qml
-        src/ui/WebcamDetailView.qml
-)
+add_subdirectory(src)
 
-target_include_directories(appOptiDeck PRIVATE
-        src
-)
-
-target_link_libraries(appOptiDeck PRIVATE
-        Qt6::Quick
-        Qt6::Multimedia
-)
-
-set_target_properties(appOptiDeck PROPERTIES OUTPUT_NAME "optideck")
+install(PROGRAMS com.nikhil-prabhu.optideck DESTINATION ${KDE_INSTALL_APPDIR})

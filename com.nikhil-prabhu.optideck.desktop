@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=OptiDeck
+Exec=optideck
+Icon=wayland
+Type=Application
+Terminal=false
+Categories=Utility
