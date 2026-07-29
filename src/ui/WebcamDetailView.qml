@@ -16,9 +16,28 @@ Kirigami.Page {
 
     Component.onDestruction: camera.active = false
 
+    MediaDevices {
+        id: mediaDevices
+    }
+
+    // Evaluate the matching index once to avoid property binding loops
+    property int deviceIndex: {
+        const inputs = mediaDevices.videoInputs;
+        for (let i = 0; i < inputs.length; ++i) {
+            if (String(inputs[i].id) === root.devicePath) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     Camera {
         id: camera
-        active: true
+        // Only attempt to start if the exact device is found
+        active: root.deviceIndex !== -1
+
+        // Pass the matched device if found; otherwise assign the default just to satisfy the QML type requirement
+        cameraDevice: root.deviceIndex !== -1 ? mediaDevices.videoInputs[root.deviceIndex] : mediaDevices.defaultVideoInput
     }
 
     CaptureSession {
@@ -59,6 +78,44 @@ Kirigami.Page {
                     id: videoOutput
                     anchors.fill: parent
                     fillMode: VideoOutput.PreserveAspectFit
+                    // Hide the output layer if there is an error or no match
+                    visible: root.deviceIndex !== -1 && camera.error === Camera.NoError
+                }
+
+                // Error Overlay
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    width: parent.width - Kirigami.Units.largeSpacing * 2
+                    visible: !videoOutput.visible
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Kirigami.Icon {
+                        Layout.alignment: Qt.AlignHCenter
+                        source: "camera-off"
+                        implicitWidth: Kirigami.Units.iconSizes.huge
+                        implicitHeight: Kirigami.Units.iconSizes.huge
+                        color: "#ffffff" // Force white so it's visible on the black background
+                        isMask: true
+                    }
+
+                    Controls.Label {
+                        Layout.fillWidth: true
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.WordWrap
+                        font.bold: true
+                        color: "#ffffff"
+                        text: root.deviceIndex === -1 ? i18n("Camera Not Found") : i18n("Unable to Start Feed")
+                    }
+
+                    Controls.Label {
+                        Layout.fillWidth: true
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.WordWrap
+                        color: "#aaaaaa"
+                        text: root.deviceIndex === -1
+                            ? i18n("The multimedia engine could not locate a feed for %1.", root.devicePath)
+                            : camera.errorString
+                    }
                 }
             }
 
