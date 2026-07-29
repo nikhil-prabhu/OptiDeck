@@ -84,26 +84,16 @@ Kirigami.ScrollablePage {
                             Layout.alignment: Qt.AlignHCenter
                             spacing: Kirigami.Units.largeSpacing
 
-                            Kirigami.Icon {
-                                source: root.connectionIconSource(modelData.connectionType)
-                                implicitWidth: Kirigami.Units.iconSizes.smallMedium
-                                implicitHeight: Kirigami.Units.iconSizes.smallMedium
+                            Kirigami.Badge {
+                                icon.name: "battery-040" // Placeholder
+                                text: modelData.battery + "%"
+                                visible: modelData.battery !== undefined && modelData.battery >= 0
+
                             }
 
-                            RowLayout {
-                                visible: modelData.battery !== undefined && modelData.battery >= 0
-                                spacing: Kirigami.Units.smallSpacing / 2
-
-                                Kirigami.Icon {
-                                    source: "battery"
-                                    implicitWidth: Kirigami.Units.iconSizes.small
-                                    implicitHeight: Kirigami.Units.iconSizes.small
-                                }
-                                Controls.Label {
-                                    text: modelData.battery + "%"
-                                    opacity: 0.8
-                                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                                }
+                            Kirigami.Badge {
+                                icon.name: root.connectionIconSource(modelData.connectionType)
+                                text: i18nc("@dashboard:connectionTypeBadge", modelData.connectionType.toUpperCase())
                             }
                         }
 
