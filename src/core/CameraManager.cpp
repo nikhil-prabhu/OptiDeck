@@ -72,10 +72,12 @@ bool CameraManager::setControlValue(const QString& devicePath, uint32_t controlI
 
 QVariantList CameraManager::getControlsForDevice(const QString& devicePath) {
     refresh(); // Fetch updated states/flags from hardware
-    for (const auto& camVar : m_cameras) {
-        if (QVariantMap cam = camVar.toMap(); cam["devicePath"].toString() == devicePath) {
+
+    for (const QVariant& camVar : m_cameras) {
+        if (const QVariantMap cam = camVar.toMap(); cam["id"].toString() == devicePath) {
             return cam["controls"].toList();
         }
     }
+
     return {};
 }
