@@ -254,7 +254,6 @@ Kirigami.Page {
                                     enabled: !modelData.isInactive
                                     from: modelData.minimum
                                     to: modelData.maximum
-                                    stepSize: modelData.step > 0 ? modelData.step : 1
                                     value: modelData.currentValue
 
                                     onMoved: {
@@ -309,7 +308,6 @@ Kirigami.Page {
                                     enabled: !modelData.isInactive
                                     from: modelData.minimum
                                     to: modelData.maximum
-                                    stepSize: modelData.step > 0 ? modelData.step : 1
                                     value: modelData.currentValue
 
                                     onMoved: {
