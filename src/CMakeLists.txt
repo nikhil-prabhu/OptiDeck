@@ -16,7 +16,6 @@ target_sources(optideck
         core/HidManager.cpp
         core/HidScanner.h
         core/HidScanner.cpp
-        core/ThemeImageProvider.h
         core/V4L2Controller.h
         core/V4L2Controller.cpp
         core/V4L2Scanner.h
