@@ -10,39 +10,52 @@ Kirigami.Page {
     property string devicePath: ""
     property string deviceType: ""
     property var controlsModel: []
+    property var videoInputs: []
 
     title: deviceName
     padding: Kirigami.Units.largeSpacing
 
-    Component.onDestruction: camera.active = false
-
-    MediaDevices {
-        id: mediaDevices
+    Component.onDestruction: {
+        if (cameraLoader.item) {
+            cameraLoader.item.active = false
+        }
     }
 
-    // Evaluate the matching index once to avoid property binding loops
     property int deviceIndex: {
-        const inputs = mediaDevices.videoInputs;
-        for (let i = 0; i < inputs.length; ++i) {
-            if (String(inputs[i].id) === root.devicePath) {
+        if (!root.videoInputs) return -1;
+        for (let i = 0; i < root.videoInputs.length; ++i) {
+            if (String(root.videoInputs[i].id) === root.devicePath) {
                 return i;
             }
         }
         return -1;
     }
 
-    Camera {
-        id: camera
-        // Only attempt to start if the exact device is found
+    Loader {
+        id: cameraLoader
         active: root.deviceIndex !== -1
 
-        // Pass the matched device if found; otherwise assign the default just to satisfy the QML type requirement
-        cameraDevice: root.deviceIndex !== -1 ? mediaDevices.videoInputs[root.deviceIndex] : mediaDevices.defaultVideoInput
+        sourceComponent: Component {
+            Camera {
+                // Force camera to be inactive during initial creation.
+                // This fixes a bug where the default webcam turns on for a split second even when a different
+                // webcam is selected.
+                active: false
+
+                // Assign the exact device
+                cameraDevice: root.videoInputs[root.deviceIndex]
+
+                // Turn it on only after the QML engine has finished binding everything
+                Component.onCompleted: {
+                    active = true
+                }
+            }
+        }
     }
 
     CaptureSession {
         id: captureSession
-        camera: camera
+        camera: cameraLoader.item
         videoOutput: videoOutput
     }
 
@@ -78,8 +91,8 @@ Kirigami.Page {
                     id: videoOutput
                     anchors.fill: parent
                     fillMode: VideoOutput.PreserveAspectFit
-                    // Hide the output layer if there is an error or no match
-                    visible: root.deviceIndex !== -1 && camera.error === Camera.NoError
+
+                    visible: root.deviceIndex !== -1 && (!cameraLoader.item || cameraLoader.item.error === Camera.NoError)
                 }
 
                 // Error Overlay
@@ -114,7 +127,7 @@ Kirigami.Page {
                         color: "#aaaaaa"
                         text: root.deviceIndex === -1
                             ? i18n("The multimedia engine could not locate a feed for %1.", root.devicePath)
-                            : camera.errorString
+                            : (cameraLoader.item ? cameraLoader.item.errorString : "")
                     }
                 }
             }
