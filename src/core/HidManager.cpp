@@ -9,9 +9,12 @@ void HidManager::refresh() {
     for (const auto& hidDev : HidScanner::scanDevices()) {
         QVariantMap dev;
 
-        // Just use the first path as the unique UI identifier for this device tile
-        // TODO: properly identify the actual path later
-        dev["id"] = QString::fromStdString(hidDev.devicePaths.front());
+        // The path alone is only unique for the receiver itself and for
+        // standalone (direct USB/BT) devices. Devices paired to a receiver
+        // all share the receiver's devicePath (comms are routed through
+        // it), so append deviceIndex to keep those unique.
+        const QString basePath = QString::fromStdString(hidDev.devicePaths.front());
+        dev["id"] = hidDev.isReceiver ? basePath : QString("%1:%2").arg(basePath).arg(hidDev.deviceIndex);
         dev["name"] = QString::fromStdString(hidDev.deviceName);
         dev["subtitle"] = QString("PID: 0x%1").arg(hidDev.productId, 4, 16, QChar('0')).toUpper();
         dev["isOnline"] = true;

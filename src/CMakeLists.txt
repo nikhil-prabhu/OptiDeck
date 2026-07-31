@@ -14,12 +14,22 @@ target_sources(optideck
         core/DeviceManager.cpp
         core/HidManager.h
         core/HidManager.cpp
+        core/HidppReceiver.h
+        core/HidppReceiver.cpp
         core/HidScanner.h
         core/HidScanner.cpp
         core/V4L2Controller.h
         core/V4L2Controller.cpp
         core/V4L2Scanner.h
         core/V4L2Scanner.cpp
+        core/ReceiverProtocolProbe.h
+        core/ReceiverProbeRegistry.cpp
+        core/ReceiverProbeRegistry.h
+        core/BoltProtocolProbe.cpp
+        core/BoltProtocolProbe.h
+        core/UnifyingProtocolProbe.cpp
+        core/UnifyingProtocolProbe.h
+        core/HidppDiagnostics.h
 )
 
 ecm_target_qml_sources(optideck
