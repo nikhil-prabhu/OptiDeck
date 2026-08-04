@@ -1,5 +1,5 @@
 #include "BoltProtocolProbe.h"
-#include "HidppDiagnostics.h"
+#include "../HidppDiagnostics.h"
 
 #include <algorithm>
 #include <print>

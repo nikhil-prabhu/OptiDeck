@@ -7,7 +7,7 @@
 #include <string_view>
 #include <vector>
 
-#include "HidppReceiver.h"
+#include "../HidppReceiver.h"
 #include "ReceiverProtocolProbe.h"
 
 // Tries each known receiver-family probe in turn for a given device

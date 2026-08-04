@@ -1,7 +1,7 @@
 #pragma once
 
-#include "CameraManager.h"
-#include "HidManager.h"
+#include "hid/HidManager.h"
+#include "webcam/CameraManager.h"
 
 class DeviceManager : public QObject {
     Q_OBJECT

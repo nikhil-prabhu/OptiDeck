@@ -1,6 +1,6 @@
 #include "CameraManager.h"
-#include "V4L2Controller.h"
-#include "V4L2Scanner.h"
+#include "v4l2/V4L2Controller.h"
+#include "v4l2/V4L2Scanner.h"
 
 #include <print>
 

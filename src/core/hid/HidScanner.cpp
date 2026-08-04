@@ -1,6 +1,6 @@
 #include "HidScanner.h"
 #include "HidppReceiver.h"
-#include "ReceiverProbeRegistry.h"
+#include "receivers/ReceiverProbeRegistry.h"
 
 #include <fstream>
 #include <map>

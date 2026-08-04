@@ -8,28 +8,31 @@ ecm_add_qml_module(optideck
 target_sources(optideck
         PRIVATE
         main.cpp
-        core/CameraManager.h
-        core/CameraManager.cpp
         core/DeviceManager.h
         core/DeviceManager.cpp
-        core/HidManager.h
-        core/HidManager.cpp
-        core/HidppReceiver.h
-        core/HidppReceiver.cpp
-        core/HidScanner.h
-        core/HidScanner.cpp
-        core/V4L2Controller.h
-        core/V4L2Controller.cpp
-        core/V4L2Scanner.h
-        core/V4L2Scanner.cpp
-        core/ReceiverProtocolProbe.h
-        core/ReceiverProbeRegistry.cpp
-        core/ReceiverProbeRegistry.h
-        core/BoltProtocolProbe.cpp
-        core/BoltProtocolProbe.h
-        core/UnifyingProtocolProbe.cpp
-        core/UnifyingProtocolProbe.h
-        core/HidppDiagnostics.h
+
+        core/webcam/CameraManager.h
+        core/webcam/CameraManager.cpp
+        core/webcam/v4l2/V4L2Controller.h
+        core/webcam/v4l2/V4L2Controller.cpp
+        core/webcam/v4l2/V4L2Scanner.h
+        core/webcam/v4l2/V4L2Scanner.cpp
+
+        core/hid/HidManager.h
+        core/hid/HidManager.cpp
+        core/hid/HidScanner.h
+        core/hid/HidScanner.cpp
+        core/hid/HidppReceiver.h
+        core/hid/HidppReceiver.cpp
+        core/hid/HidppDiagnostics.h
+
+        core/hid/receivers/ReceiverProtocolProbe.h
+        core/hid/receivers/ReceiverProbeRegistry.h
+        core/hid/receivers/ReceiverProbeRegistry.cpp
+        core/hid/receivers/BoltProtocolProbe.h
+        core/hid/receivers/BoltProtocolProbe.cpp
+        core/hid/receivers/UnifyingProtocolProbe.h
+        core/hid/receivers/UnifyingProtocolProbe.cpp
 )
 
 ecm_target_qml_sources(optideck

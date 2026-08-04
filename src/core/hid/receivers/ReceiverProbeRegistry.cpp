@@ -12,7 +12,7 @@ ReceiverProbeRegistry::ReceiverProbeRegistry() {
 std::optional<ReceiverProbeRegistry::ProbedDevice> ReceiverProbeRegistry::probeDevice(
     HidppReceiver& hidpp, const uint8_t deviceIndex) const {
     for (const auto& probe : m_probes) {
-        auto info = probe->getPairingInfo(hidpp, deviceIndex);
+        const auto info = probe->getPairingInfo(hidpp, deviceIndex);
         if (!info)
             continue;
 

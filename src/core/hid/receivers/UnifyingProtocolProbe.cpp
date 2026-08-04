@@ -1,5 +1,5 @@
 #include "UnifyingProtocolProbe.h"
-#include "HidppDiagnostics.h"
+#include "../HidppDiagnostics.h"
 
 #include <print>
 

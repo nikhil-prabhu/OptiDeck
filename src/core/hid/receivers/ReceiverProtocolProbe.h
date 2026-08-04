@@ -6,7 +6,7 @@
 #include <string>
 #include <string_view>
 
-#include "HidppReceiver.h"
+#include "../HidppReceiver.h"
 
 // One receiver family's knowledge of register 0xB5's layout and how to
 // recognize its own receivers. Add support for a new family (Nano,
