@@ -1,6 +1,9 @@
 #include "HidManager.h"
 #include <linux/input.h>
 #include <QVariantMap>
+#include "../LogitechIds.h"
+
+using namespace LogitechIds;
 
 HidManager::HidManager(QObject* parent) : QObject(parent) {}
 
@@ -38,15 +41,18 @@ void HidManager::refresh() {
 QString HidManager::determineDeviceType(const uint16_t productId, const QString& deviceName, const bool isReceiver) {
     // TODO: properly map out these PIDs elsewhere, and add more products
     switch (productId) {
-    case 0xC548: // Logi Bolt Receiver
+    case Receiver::BOLT:
         return "receiver";
-    case 0xB034: // MX Master 3S (Bluetooth/Bolt)
-    case 0xB035: // MX Master 3S (Mac Edition)
-    case 0xB023: // MX Master 3
-    case 0xB03F: // M196
+
+    case Mouse::MX_MASTER_3S_BOLT:
+    case Mouse::MX_MASTER_3S_MAC:
+    case Mouse::MX_MASTER_3:
+    case Mouse::M196:
         return "mouse";
-    case 0xB353: // MX Keys
+
+    case Keyboard::MX_KEYS:
         return "keyboard";
+
     default:
         break;
     }

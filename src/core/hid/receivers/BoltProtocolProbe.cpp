@@ -1,12 +1,11 @@
 #include "BoltProtocolProbe.h"
+#include "../../HidppProtocol.h"
 #include "../HidppDiagnostics.h"
 
 #include <algorithm>
 #include <print>
 
-namespace {
-constexpr uint8_t REG_PAIRING_INFORMATION = 0xB5;
-}
+using namespace HidppProtocol;
 
 std::optional<std::string> BoltProtocolProbe::identifyReceiver(const uint16_t productId) const {
     // Known Bolt receiver PID(s).

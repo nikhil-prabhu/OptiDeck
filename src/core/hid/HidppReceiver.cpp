@@ -1,4 +1,5 @@
 #include "HidppReceiver.h"
+#include "../HidppProtocol.h"
 #include "HidppDiagnostics.h"
 
 #include <fcntl.h>
@@ -9,21 +10,9 @@
 #include <cstring>
 #include <print>
 
+using namespace HidppProtocol;
+
 namespace {
-constexpr uint8_t REPORT_ID_SHORT = 0x10;
-constexpr uint8_t REPORT_ID_LONG = 0x11;
-constexpr size_t LEN_SHORT = 7;
-constexpr size_t LEN_LONG = 20;
-
-constexpr uint8_t DEVICE_INDEX_RECEIVER = 0xFF;
-
-constexpr uint8_t SUBID_GET_REGISTER = 0x81;
-constexpr uint8_t SUBID_GET_LONG_REGISTER = 0x83;
-constexpr uint8_t SUBID_ERROR = 0x8F;
-
-constexpr uint8_t REG_CONNECTION_STATE = 0x02;
-constexpr uint8_t REG_PAIRING_INFORMATION = 0xB5;
-
 void drainPending(const int fd) {
     uint8_t drain[64];
     while (::read(fd, drain, sizeof(drain)) > 0) {

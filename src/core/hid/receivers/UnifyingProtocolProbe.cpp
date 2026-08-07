@@ -1,11 +1,10 @@
 #include "UnifyingProtocolProbe.h"
+#include "../../HidppProtocol.h"
 #include "../HidppDiagnostics.h"
 
 #include <print>
 
-namespace {
-constexpr uint8_t REG_PAIRING_INFORMATION = 0xB5;
-}
+using namespace HidppProtocol;
 
 std::optional<std::string> UnifyingProtocolProbe::identifyReceiver(const uint16_t productId) const {
     // Only these two PIDs are confirmed. Logitech has shipped many Unifying receiver

@@ -10,6 +10,8 @@ target_sources(optideck
         main.cpp
         core/DeviceManager.h
         core/DeviceManager.cpp
+        core/HidppProtocol.h
+        core/LogitechIds.h
 
         core/webcam/CameraManager.h
         core/webcam/CameraManager.cpp
